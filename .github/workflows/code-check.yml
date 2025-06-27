@@ -1,0 +1,40 @@
+name: Check Modified File
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  extract-and-send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get list of modified files
+        id: files
+        run: |
+          git fetch origin main --depth=2
+          MODIFIED_FILE=$(git diff --name-only HEAD~1 HEAD | grep '^problems/' || true)
+          echo "Modified file: $MODIFIED_FILE"
+          echo "file=$MODIFIED_FILE" >> $GITHUB_OUTPUT
+
+      - name: Read file content
+        if: steps.files.outputs.file != ''
+        id: read
+        run: |
+          CONTENT=$(cat "${{ steps.files.outputs.file }}" | base64)
+          echo "content=$CONTENT" >> $GITHUB_OUTPUT
+
+      - name: Send file to webhook.site
+        if: steps.files.outputs.file != ''
+        run: |
+          curl -X POST https://webhook.site/YOUR_UNIQUE_WEBHOOK_URL \
+            -H "Content-Type: application/json" \
+            -d '{
+              "username": "${{ github.actor }}",
+              "filename": "${{ steps.files.outputs.file }}",
+              "commit": "${{ github.sha }}",
+              "content_base64": "${{ steps.read.outputs.content }}"
+            }'
