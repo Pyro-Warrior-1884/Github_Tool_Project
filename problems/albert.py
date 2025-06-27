@@ -1,1 +1,2 @@
-print("Pyro Warrior FOREVAAA")
+def solve():
+    return "Hello, this is Albert's solution"
