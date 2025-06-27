@@ -3,7 +3,7 @@ name: Check Modified File
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   extract-and-send:
@@ -15,7 +15,7 @@ jobs:
       - name: Get list of modified files
         id: files
         run: |
-          git fetch origin main --depth=2
+          git fetch origin master --depth=2
           MODIFIED_FILE=$(git diff --name-only HEAD~1 HEAD | grep '^problems/' || true)
           echo "Modified file: $MODIFIED_FILE"
           echo "file=$MODIFIED_FILE" >> $GITHUB_OUTPUT
