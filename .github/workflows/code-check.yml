@@ -53,6 +53,6 @@ jobs:
           echo "Sending Payload:"
           echo "$JSON"
 
-          curl -X POST http://localhost:3000/submit \
+          curl -X POST https://github-server-40e9raax1-albertnedumudy-5247s-projects.vercel.app/submit \
             -H "Content-Type: application/json" \
             -d "$JSON"
