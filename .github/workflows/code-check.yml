@@ -1,40 +1,58 @@
-name: Check Modified File
+name: Evaluate Student Code
 
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
-  extract-and-send:
+  send-submission:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Get list of modified files
-        id: files
+      - name: Extract Commit Info
+        id: extract
         run: |
-          git fetch origin master --depth=2
-          MODIFIED_FILE=$(git diff --name-only HEAD~1 HEAD | grep '^problems/' || true)
-          echo "Modified file: $MODIFIED_FILE"
-          echo "file=$MODIFIED_FILE" >> $GITHUB_OUTPUT
+          echo "COMMITTER=$(git log -1 --pretty=format:'%an')" >> $GITHUB_ENV
+          echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_ENV
+          echo "CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)" >> $GITHUB_ENV
 
-      - name: Read file content
-        if: steps.files.outputs.file != ''
-        id: read
+      - name: Collect Changed Code Files (.py, .cpp, .java)
+        id: collect
         run: |
-          CONTENT=$(cat "${{ steps.files.outputs.file }}" | base64)
-          echo "content=$CONTENT" >> $GITHUB_OUTPUT
+          mkdir -p encoded
+          echo "[" > encoded/files.json
+          FIRST=true
+          for FILE in $CHANGED_FILES; do
+            # Only handle .py, .cpp, .java
+            if [[ "$FILE" == *.py || "$FILE" == *.cpp || "$FILE" == *.java ]]; then
+              if [ -f "$FILE" ]; then
+                CODE=$(base64 -w 0 "$FILE")
+                if [ "$FIRST" = true ]; then
+                  FIRST=false
+                else
+                  echo "," >> encoded/files.json
+                fi
+                echo "  {\"filename\": \"${FILE}\", \"content_b64\": \"${CODE}\"}" >> encoded/files.json
+              fi
+            fi
+          done
+          echo "]" >> encoded/files.json
 
-      - name: Send file to webhook.site
-        if: steps.files.outputs.file != ''
+      - name: Send to Backend
         run: |
-          curl -X POST https://webhook.site/YOUR_UNIQUE_WEBHOOK_URL \
+          JSON=$(jq -n \
+            --arg username "$COMMITTER" \
+            --arg commitCount "$COMMIT_COUNT" \
+            --argjson files "$(cat encoded/files.json)" \
+            '{username: $username, commitCount: $commitCount, files: $files}')
+
+          echo "Sending Payload:"
+          echo "$JSON"
+
+          curl -X POST https://your-backend-url/submit \
             -H "Content-Type: application/json" \
-            -d '{
-              "username": "${{ github.actor }}",
-              "filename": "${{ steps.files.outputs.file }}",
-              "commit": "${{ github.sha }}",
-              "content_base64": "${{ steps.read.outputs.content }}"
-            }'
+            -d "$JSON"
