@@ -1,3 +1,3 @@
 def solve():
     return "Hello, this is Albert's solution"
-print("i can achieve the impossible")
+print("dare to challenge the impossible")
