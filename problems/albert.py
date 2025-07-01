@@ -1,3 +1,3 @@
 def solve():
     return "Hello, this is Albert's solution"
-print("Rockanthu")
+print("i am the pyro warrior")
