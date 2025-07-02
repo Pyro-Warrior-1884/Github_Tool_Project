@@ -1,3 +1,3 @@
 def solve():
     return "Hello, this is Albert's solution"
-print("please>'")
+print("come on just work already")
