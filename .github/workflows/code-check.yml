@@ -10,8 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout full commit history
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 2  # Needed to access HEAD~1
 
       - name: Extract Commit Info
         id: extract
@@ -19,13 +21,12 @@ jobs:
           echo "COMMITTER=$(git log -1 --pretty=format:'%an')" >> $GITHUB_ENV
           echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_ENV
 
-          # Detect changed files in this commit only
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
 
       - name: Show Changed Files
         run: |
-          echo "Files changed in commit:"
+          echo "Files changed in this commit:"
           echo "$CHANGED_FILES"
 
       - name: Collect Changed Code Files (.py, .cpp, .java)
@@ -57,7 +58,7 @@ jobs:
             --argjson files "$(cat encoded/files.json)" \
             '{username: $username, commitCount: $commitCount, files: $files}')
 
-          echo "Final Payload to send to Vercel API:"
+          echo "Final JSON Payload:"
           echo "$JSON" | jq .
 
           curl -v --fail -X POST https://github-server-2zbbyg128-albertnedumudy-5247s-projects.vercel.app/api/submit \
