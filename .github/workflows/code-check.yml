@@ -21,26 +21,25 @@ jobs:
           echo "CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)" >> $GITHUB_ENV
 
       - name: Collect Changed Code Files (.py, .cpp, .java)
-        id: collect
         run: |
           mkdir -p encoded
-          echo "[" > encoded/files.json
-          FIRST=true
+          echo "[]" > encoded/files.json
+
           for FILE in $CHANGED_FILES; do
-            # Only handle .py, .cpp, .java
             if [[ "$FILE" == *.py || "$FILE" == *.cpp || "$FILE" == *.java ]]; then
               if [ -f "$FILE" ]; then
-                CODE=$(base64 -w 0 "$FILE")
-                if [ "$FIRST" = true ]; then
-                  FIRST=false
-                else
-                  echo "," >> encoded/files.json
-                fi
-                echo "  {\"filename\": \"${FILE}\", \"content_b64\": \"${CODE}\"}" >> encoded/files.json
+                CODE=$(base64 < "$FILE" | tr -d '\n')
+                jq --arg filename "$FILE" --arg content_b64 "$CODE" \
+                   '. += [{filename: $filename, content_b64: $content_b64}]' \
+                   encoded/files.json > temp.json && mv temp.json encoded/files.json
               fi
             fi
           done
-          echo "]" >> encoded/files.json
+
+          echo "CHANGED FILES:"
+          echo "$CHANGED_FILES"
+          echo "ENCODED FILES CONTENT:"
+          cat encoded/files.json
 
       - name: Send to Backend
         run: |
@@ -50,9 +49,9 @@ jobs:
             --argjson files "$(cat encoded/files.json)" \
             '{username: $username, commitCount: $commitCount, files: $files}')
 
-          echo "Sending Payload:"
-          echo "$JSON"
+          echo "Final Payload:"
+          echo "$JSON" | jq .
 
-          curl -X POST https://github-server-2zbbyg128-albertnedumudy-5247s-projects.vercel.app/api/submit \
+          curl -v --fail -X POST https://github-server-2zbbyg128-albertnedumudy-5247s-projects.vercel.app/api/submit \
             -H "Content-Type: application/json" \
             -d "$JSON"
