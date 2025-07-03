@@ -13,7 +13,7 @@ jobs:
       - name: Checkout full commit history
         uses: actions/checkout@v3
         with:
-          fetch-depth: 2  # Needed to access HEAD~1
+          fetch-depth: 2  # So HEAD~1 is available
 
       - name: Extract Commit Info
         id: extract
@@ -22,7 +22,11 @@ jobs:
           echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_ENV
 
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
-          echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
+
+          # Safe multiline export for file paths
+          echo "CHANGED_FILES<<EOF" >> $GITHUB_ENV
+          echo "$CHANGED_FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Show Changed Files
         run: |
