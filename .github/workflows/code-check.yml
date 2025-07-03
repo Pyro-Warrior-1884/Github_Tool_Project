@@ -18,7 +18,15 @@ jobs:
         run: |
           echo "COMMITTER=$(git log -1 --pretty=format:'%an')" >> $GITHUB_ENV
           echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_ENV
-          echo "CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)" >> $GITHUB_ENV
+
+          # Detect changed files in this commit only
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
+
+      - name: Show Changed Files
+        run: |
+          echo "Files changed in commit:"
+          echo "$CHANGED_FILES"
 
       - name: Collect Changed Code Files (.py, .cpp, .java)
         run: |
@@ -49,7 +57,7 @@ jobs:
             --argjson files "$(cat encoded/files.json)" \
             '{username: $username, commitCount: $commitCount, files: $files}')
 
-          echo "Final Payload:"
+          echo "Final Payload to send to Vercel API:"
           echo "$JSON" | jq .
 
           curl -v --fail -X POST https://github-server-2zbbyg128-albertnedumudy-5247s-projects.vercel.app/api/submit \
