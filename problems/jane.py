@@ -1,3 +1,3 @@
 def solve():
     return "Hello, this is Albert's solution"
-print("who do we love")
+print("who do we lov)
