@@ -65,6 +65,6 @@ jobs:
           echo "Final JSON Payload:"
           echo "$JSON" | jq .
 
-          curl -v --fail -X POST https://github-server-cav5sasgg-albertnedumudy-5247s-projects.vercel.app/api/submit \
+          curl -v --fail -X POST https://github-server-gwds5fyju-albertnedumudy-5247s-projects.vercel.app/api/submit \
             -H "Content-Type: application/json" \
             -d "$JSON"
