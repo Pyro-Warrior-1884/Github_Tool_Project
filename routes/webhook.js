@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
 
   try {
     for (const file of files) {
-      await submissionQueue.add('submission', {
+      await submissionQueue.add('ode-submissions', {
         name,
         commitCount,
         timestamp,
