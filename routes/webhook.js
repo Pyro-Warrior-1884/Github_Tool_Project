@@ -10,14 +10,13 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    for (const file of files) {
-      await submissionQueue.add('code-submissions', {
+    await submissionQueue.add('code-submissions', {
         name,
         commitCount,
         timestamp,
         content,
         filename,
-      });
+      }
     }
 
     return res.status(200).json({ message: 'Queued all files successfully' });
