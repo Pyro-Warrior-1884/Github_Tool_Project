@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
         timestamp,
         content,
         filename,
-      }
+      });
     }
 
     return res.status(200).json({ message: 'Queued all files successfully' });
