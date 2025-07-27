@@ -15,8 +15,8 @@ router.post('/', async (req, res) => {
         name,
         commitCount,
         timestamp,
-        content: content,
-        filename: filename,
+        content,
+        filename,
       });
     }
 
